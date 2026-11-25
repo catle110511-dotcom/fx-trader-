@@ -266,13 +266,26 @@
       delayed ? `<span class="chip">항로 지연 +1달</span>` : "",
       g.dispCur(m.cur, S.i) !== m.cur && g.dispCur(m.cur, S.i) !== "EUR" ? `<span class="chip info">${m.id === "athens" ? 2001 : 1999}년 유로로 전환 예정</span>` : ""
     ].join("");
+    // 초보 도우미: 여기서 사서 어디에 팔면 남는지 (운임까지 뺀 예상)
+    const tipFor = (gid, stock, have) => {
+      if (stock) {
+        const bd = g.bestDest(sel, gid);
+        return bd && bd.edge > 0.03 ? `<span class="tip up">→ ${g.M[bd.to].name}에 팔면 약 +${Math.round(bd.edge * 100)}% (${bd.turns}${S.rt ? "일" : "달"})</span>`
+          : `<span class="tip">→ 지금은 옮겨도 남는 곳이 없어요</span>`;
+      }
+      if (have) {
+        const p = g.sellKRW(sel, gid) / (S.cb[sel][gid] || 1) - 1;
+        return `<span class="tip ${cls(p)}">여기서 팔면 평단 대비 ${pct(p)}</span>`;
+      }
+      return "";
+    };
     const rowFor = gd => {
       const stock = S.stock[sel][gd.id], have = S.inv[sel][gd.id] || 0;
       const b = g.buyKRW(sel, gd.id), s = g.sellKRW(sel, gd.id);
       return `<button class="good ${stock ? "" : "soldout"}" data-good="${gd.id}" type="button">
         ${goodImg(gd.id)}
         <span><span class="gname">${gd.name(S.i)}</span>${gd.origin === sel ? `<span class="tag">특산</span>` : ""}
-          <span class="sub" style="display:block">시장 재고 ${stock} · 내 창고 ${have}${have ? ` · 평단 ${won(S.cb[sel][gd.id] || 0)}` : ""}</span></span>
+          <span class="sub" style="display:block">시장 재고 ${stock} · 내 창고 ${have}${have ? ` · 평단 ${won(S.cb[sel][gd.id] || 0)}` : ""}</span>${tipFor(gd.id, stock, have)}</span>
         <span class="px">${stock ? `살 때 <b>${won(b)}</b><br>` : `<span class="muted">이번 달 입고 없음</span><br>`}팔 때 <b class="${have ? cls(s / (S.cb[sel][gd.id] || s) - 1) : ""}">${won(s)}</b></span>
       </button>`;
     };
@@ -375,9 +388,10 @@
     const S = g.S, gid = sheet.gid, gd = g.G[gid], m = g.M[sel];
     const have = S.inv[sel][gid] || 0, stock = S.stock[sel][gid];
     const bL = g.priceLocal(sel, gid) * 1.03, sL = g.priceLocal(sel, gid) * 0.97;
+    const rec0 = g.bestDest(sel, gid), rec = rec0 && rec0.edge > 0.03 ? rec0 : null;
     const dests = g.MARKETS.filter(x => x.id !== sel && g.isOpen(x.id, S.i)).sort((a, b) => g.sellKRW(b.id, gid) - g.sellKRW(a.id, gid)).map(x => {
       const t = g.dist(sel, x.id) + g.routeDelay(sel, x.id);
-      return `<button class="dest ${sheet.dest === x.id ? "on" : ""}" data-dest="${x.id}" type="button"><b>${x.name}</b><small>팔 때 ${won(g.sellKRW(x.id, gid))} · ${t}${g.S.rt ? "일" : "달"}</small></button>`;
+      return `<button class="dest ${sheet.dest === x.id ? "on" : ""}" data-dest="${x.id}" type="button"><b>${x.name}${rec && rec.to === x.id ? ` <span class="badge">추천</span>` : ""}</b><small>팔 때 ${won(g.sellKRW(x.id, gid))} · ${t}${g.S.rt ? "일" : "달"}</small></button>`;
     }).join("");
     let quote = "";
     if (sheet.dest && have) {
@@ -400,6 +414,7 @@
         <div class="kv"><span>살 때 (현지가 ${local(bL, m.cur)})</span><b>${won(g.buyKRW(sel, gid))}</b></div>
         <div class="kv"><span>팔 때 (현지가 ${local(sL, m.cur)})</span><b>${won(g.sellKRW(sel, gid))}</b></div>
       </div>
+      <p class="note" style="margin:-6px 0 10px">같은 항구에서 사고 바로 팔면 시장 수수료(약 6~8%)만큼 손해예요. 더 비싸게 팔리는 다른 항구로 옮겨야 남아요.${rec ? ` <b>추천: ${g.M[rec.to].name} 약 +${Math.round(rec.edge * 100)}%</b>` : ""}</p>
       <label for="qty" class="muted" style="font-size:14px">수량</label>
       <div class="stepper">
         <button data-q="-10" type="button">−10</button><button data-q="-1" type="button">−1</button>

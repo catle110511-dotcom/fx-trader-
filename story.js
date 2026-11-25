@@ -132,7 +132,12 @@ window.Story = (() => {
   function endTutorial(skipped) {
     clearFocus(); hide(); tut = null;
     flags.tut = true; saveFlags();
-    if (skipped) say(["언제든 맨 아래 '시대 선택'에서 튜토리얼을 다시 볼 수 있네. 그럼, 좋은 항해를!"]);
+    if (skipped) say([
+      "알겠네. 대신 장사 요령 세 가지만 기억하게.",
+      "첫째, 특산품은 그 항구에서 제일 싸. 상품 아래 <b>'→ 어디에 팔면 +몇 %'</b>를 보고, 그 항구로 배를 보내게.",
+      "둘째, 같은 항구에서 사서 바로 팔면 수수료만큼 손해야. <b>꼭 다른 항구로 옮겨서</b> 팔게.",
+      "셋째, 배가 도착하면 그 항구를 눌러 팔고, 남는 돈으로 배와 창고를 늘리게. 튜토리얼은 '시대 선택'에서 언제든 다시 볼 수 있네. 좋은 항해를!"
+    ]);
   }
   function clearFocus() { document.querySelectorAll(".tut-focus").forEach(e => e.classList.remove("tut-focus")); }
   function refocus(scroll) {
