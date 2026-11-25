@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>환율 무역상</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;700&family=Space+Grotesk:wght@500;700&display=swap">
+<!-- 디자인은 전부 style.css 에 있어요. 그래픽 수정은 style.css 와 assets/ 폴더만 바꾸면 돼요. -->
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <header class="top">
+    <div class="brand">
+      <h1>환율 무역상</h1>
+      <span id="scen" class="scen"></span>
+    </div>
+    <div class="date" id="date"></div>
+    <div class="stats">
+      <div class="stat"><span>현금</span><b id="cash"></b></div>
+      <div class="stat"><span>순자산</span><b id="worth"></b><small id="ret"></small></div>
+    </div>
+  </header>
+
+  <section class="map" id="map" aria-label="세계 항로도">
+    <svg id="world" preserveAspectRatio="xMidYMid meet"></svg>
+    <button id="mapAll" class="mapall" type="button" hidden>전체 지도</button>
+  </section>
+  <nav class="regions" id="regions" aria-label="지역"></nav>
+  <div class="cities" id="cities" aria-label="도시"></div>
+
+  <main class="body">
+    <section class="market card" id="market"></section>
+    <aside class="side">
+      <section class="news card" id="news"></section>
+      <section class="fleet card" id="fleet"></section>
+    </aside>
+  </main>
+
+  <footer class="bar">
+    <button id="btnMenu" class="btn ghost" type="button">시대 선택</button>
+    <button id="btnUpg" class="btn ghost" type="button">투자</button>
+    <button id="btnNext" class="btn primary" type="button">다음 달 ▶</button>
+  </footer>
+</div>
+
+<div id="sheet" class="sheet" hidden>
+  <div class="sheet-bg" data-close></div>
+  <div class="sheet-card" id="sheetCard" role="dialog" aria-modal="true"></div>
+</div>
+<div id="modal" class="modal" hidden>
+  <div class="modal-card" id="modalCard" role="dialog" aria-modal="true"></div>
+</div>
+<div id="toast" class="toast" hidden></div>
+
+<script src="data.js"></script>
+<script src="map.js"></script>
+<script src="live.js"></script>
+<script src="game.js"></script>
+<script src="story.js"></script>
+<script src="extras.js"></script>
+<script src="ui.js"></script>
+</body>
+</html>
