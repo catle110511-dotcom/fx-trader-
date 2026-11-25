@@ -102,6 +102,9 @@
       $("#btnNext").textContent = "다음 달 ▶";
     }
     $("#cash").textContent = won(S.cash);
+    const debt = g.debtKRW();
+    $("#debtStat").hidden = debt < 1;
+    $("#debt").textContent = won(debt);
     $("#worth").textContent = won(w);
     const ret = $("#ret"); ret.textContent = pct(r); ret.className = "num " + cls(r);
   }
@@ -452,14 +455,26 @@
       <button class="btn" data-upg="${k}" type="button">${won(g.upgCost(k))}</button></div>`;
     sheet = { upg: true };
     $("#sheetCard").innerHTML = `
-      <div class="sheet-head">${shipImg()}<div><h2 style="margin:0">투자</h2><small>현금 ${won(S.cash)}</small></div>
+      <div class="sheet-head">${shipImg()}<div><h2 style="margin:0">투자·대출</h2><small>현금 ${won(S.cash)}${g.debtKRW() > 0 ? ` · 빚 ${won(g.debtKRW())}` : ""}</small></div>
         <button class="xbtn" data-close type="button" aria-label="닫기">×</button></div>
       <div class="toggles">
         ${item("ship", `지금 ${S.ships}척. 동시에 더 많은 항로를 굴려요.`)}
         ${item("hold", `지금 척당 ${S.shipCap}개. 한 번에 더 많이 실어요.`)}
         ${item("wh", `${g.M[sel].name} 창고 ${S.cap[sel]}칸 → ${S.cap[sel] + 40}칸`)}
       </div>
-      <p class="note">지점장은 시장 화면의 "지점장" 칸에서 영입해요.</p>`;
+      <h2 style="margin-top:6px">은행 대출</h2>
+      <p class="note" style="margin:0 0 8px">총자산의 60%까지 빌릴 수 있어요. 남은 한도 <b class="num">${won(g.creditLimit())}</b>. 이자는 ${S.rt ? "매일" : "매달"} 현금에서 나가고, 모자라면 빚에 붙어요. <b>달러·엔화로 빌리면 이자는 싸지만, 원화 값이 떨어질 때 갚을 돈이 불어나요.</b> 빚이 재산보다 많아지면 부도예요.</p>
+      <div class="loans">${g.LOAN_CURS.map(cur => {
+        const owe = S.loans[cur] || 0, oweKRW = cur === "KRW" ? owe : owe / g.rate(cur, S.i) * g.rate("KRW", S.i);
+        return `<div class="loan">
+          <div class="loan-head"><b>${g.LOAN_NAME[cur]} 대출</b><span class="num">연 ${g.loanRate(cur).toFixed(1)}%</span></div>
+          <small>${owe > 0 ? `빚 ${cur === "KRW" ? won(owe) : local(owe, cur)}${cur === "KRW" ? "" : ` (지금 원화로 ${won(oweKRW)})`}` : "빌린 돈 없음"}</small>
+          <div class="loan-btns">
+            ${[0.1, 0.25, 0.5].map(f => `<button class="btn" type="button" data-borrow="${cur}" data-f="${f}" ${g.creditLimit() < 1e4 ? "disabled" : ""}>${Math.round(f * 100)}% 빌리기</button>`).join("")}
+            ${owe > 0 ? `<button class="btn" type="button" data-repay="${cur}" data-f="0.5">절반 갚기</button><button class="btn primary" type="button" data-repay="${cur}" data-f="1">다 갚기</button>` : ""}
+          </div></div>`;
+      }).join("")}</div>
+      <p class="note">지점장은 시장 화면의 "지점장" 칸에서 영입해요. 금리는 그 시대 실제 대출 금리 수준(근사치)이에요.</p>`;
     $("#sheet").hidden = false;
   }
 
@@ -490,7 +505,7 @@
   }
   function openEnd() {
     const S = g.S, w = g.netWorth(), r = w / S.startWorth - 1;
-    const tg = Story.target(S.scen) || 1, cleared = w >= S.startWorth * tg;
+    const tg = Story.target(S.scen) || 1, cleared = !S.bankrupt && w >= S.startWorth * tg;
     Extras.scenarioEnd(S.scen, w / S.startWorth, cleared);
     const k = g.SCENARIOS.findIndex(x => x.id === S.scen), next = g.SCENARIOS[k + 1];
     let btns;
@@ -500,8 +515,8 @@
     else btns = `<button class="scenbtn cont" data-scen="${S.scen}" type="button"><b>다시 도전</b><small>${esc(S.scenName)}을 처음부터</small></button>
         <button class="scenbtn" data-menu type="button"><b>다른 시대 고르기</b><small>시나리오 목록</small></button>`;
     $("#modalCard").innerHTML = `
-      <div class="startHead">${Story.guideImg()}<div><h2>${cleared ? "목표 달성!" : "목표에 못 미쳤어요"}</h2>
-      <p class="lead">${Story.endLines(S, cleared)}</p></div></div>
+      <div class="startHead">${Story.guideImg()}<div><h2>${S.bankrupt ? "부도" : cleared ? "목표 달성!" : "목표에 못 미쳤어요"}</h2>
+      <p class="lead">${S.bankrupt ? "빚이 재산보다 많아져 회사 문을 닫았네. 빚은 칼날 같아서, 잘 쓰면 무기지만 잘못 쥐면 자기를 베지. 다시 감아 보겠나?" : Story.endLines(S, cleared)}</p></div></div>
       <div class="row2">
         <div class="kv"><span>시작 자산</span><b>${won(S.startWorth)}</b></div>
         <div class="kv"><span>최종 순자산 (목표 ×${tg})</span><b>${won(w)}</b></div>
@@ -551,6 +566,11 @@
     if (t.hasAttribute("data-fire")) { g.fire(sel); toast("해고했어요"); save(); closeSheet(); return renderAll(); }
     if (t.dataset.set) { g.setMgr(sel, t.dataset.set, +t.dataset.val); save(); return openMgr(); }
     if (t.dataset.upg) { const err = g.upgrade(t.dataset.upg, sel); toast(err || "투자 완료"); if (!err) Extras.play("coin"); Extras.check(g); save(); renderAll(); return openUpg(); }
+    if (t.dataset.borrow) { const err = g.borrow(t.dataset.borrow, g.creditLimit() * +t.dataset.f); toast(err || "빌렸어요"); if (!err) Extras.play("coin"); save(); renderAll(); return openUpg(); }
+    if (t.dataset.repay) {
+      const cur = t.dataset.repay, owe = g.S.loans[cur] || 0, oweKRW = cur === "KRW" ? owe : owe / g.rate(cur, g.S.i) * g.rate("KRW", g.S.i);
+      const err = g.repay(cur, oweKRW * +t.dataset.f + (+t.dataset.f === 1 ? 1 : 0)); toast(err || "갚았어요"); save(); renderAll(); return openUpg();
+    }
     if (t.hasAttribute("data-ach")) return openAch();
     if (t.hasAttribute("data-sound")) { const on = Extras.toggleSound(); toast(on ? "소리 켬" : "소리 끔"); return openStart(); }
     if (t.dataset.scen) { g.newGame(t.dataset.scen); sel = "seoul"; save(); $("#modal").hidden = true; renderAll(); return Story.startScenario(t.dataset.scen); }
@@ -583,7 +603,7 @@
   setInterval(() => { if (g.S && g.S.rt && $("#sheet").hidden && $("#modal").hidden) liveRefresh(false); }, 30000);
   document.addEventListener("visibilitychange", () => { if (!document.hidden && g.S && g.S.rt) liveRefresh(false); });
   $("#btnNext").addEventListener("click", () => {
-    if (g.S.rt) return liveRefresh(true);
+    if (g.S.rt) { liveRefresh(true); if (g.S.bankrupt) openEnd(); return; }
     if (g.S.over) return openEnd();
     const arrivals = g.nextTurn(); save(); renderAll();
     Extras.play("next"); Extras.check(g);

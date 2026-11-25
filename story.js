@@ -108,7 +108,7 @@ window.Story = (() => {
     { text: () => tut.hedged ? "선물 계약대로 자동으로 팔렸군! 약속한 값을 그대로 받았네. 환율이 어떻게 움직였든 상관없이 말이지." : `도착했군! 도시 목록에서 <b>${G().M[tut.to].name}</b>을(를) 누르고, 물건을 <b>팔게</b>. 판매가가 빨간색이면 평단가보다 비싸다는 뜻이야.`, before: () => { if (!tut.hedged && window.UI) UI.showRegion(G().M[tut.to].region); }, focus: () => tut.hedged ? null : `.citychip[data-port="${tut.to}"], .good[data-good="${tut.g}"]`, wait: () => tut.hedged ? null : "sell", hint: "도착한 항구 → 물건 → 팔기" },
     { text: "잘했네! 장사의 기본은 이걸세. <b>싸게 사서, 옮기고, 비싸게 판다.</b> 그리고 환율이 크게 움직일 때가 가장 큰 기회지. 한 나라 돈이 갑자기 싸지면, 그 나라 물건도 갑자기 싸지거든.", focus: "#map" },
     { text: "혼자서 여섯 항구를 다 돌볼 순 없지. 시장 화면의 <b>지점장</b> 칸에서 사람을 뽑으면 매달 알아서 사고, 보내고, 팔아 준다네. 다만 배 1척에 1~2명이 알맞아. 너무 많이 뽑으면 월급만 나가.", focus: ".mslot" },
-    { text: () => `돈이 모이면 <b>투자</b>에서 배와 창고를 늘리게. 이번 시대의 목표는 재산 <b>${TARGET[G().S.scen] || 2}배</b>야. 그리고 뉴스를 잘 보게. 역사는 그대로 반복되진 않아도, 늘 비슷한 운율을 타거든.`, focus: "#btnUpg", btn: "시작하기" }
+    { text: () => `돈이 모이면 <b>투자·대출</b>에서 배와 창고를 늘리게. 은행에서 돈을 빌릴 수도 있지만, 남의 나라 돈으로 빌렸다가 우리 돈 값이 떨어지면 빚이 불어나니 조심하게. 이번 시대의 목표는 재산 <b>${TARGET[G().S.scen] || 2}배</b>야. 그리고 뉴스를 잘 보게. 역사는 그대로 반복되진 않아도, 늘 비슷한 운율을 타거든.`, focus: "#btnUpg", btn: "시작하기" }
   ];
   const val = v => typeof v === "function" ? v() : v;
   function startTutorial() {

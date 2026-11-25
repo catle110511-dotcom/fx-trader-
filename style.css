@@ -1866,3 +1866,16 @@ html[data-theme=dark][data-era="1980s"] .newsitem {
   .guide-card { padding: 10px; gap: 9px; }
   .guide-body p { font-size: 13.5px; }
 }
+
+/* =====================================================================
+   은행 대출 (투자·대출 창)
+   ===================================================================== */
+.loans { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
+.loan { padding: 10px 12px; border-radius: var(--radius-sm); background: var(--surface-2); border: 1px solid var(--border); }
+.loan-head { display: flex; justify-content: space-between; align-items: baseline; }
+.loan-head b { font-size: 14px; }
+.loan-head span { font-size: 13px; font-weight: 700; color: var(--accent-dark); }
+.loan > small { display: block; font-size: 12px; margin: 2px 0 8px; }
+.loan-btns { display: flex; flex-wrap: wrap; gap: 6px; }
+.loan-btns .btn { min-height: 38px; padding: 0 10px; font-size: 12.5px; }
+#debtStat b { color: var(--down); }

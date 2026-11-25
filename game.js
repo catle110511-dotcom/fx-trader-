@@ -54,39 +54,40 @@ window.Game = (() => {
     { id: "na", name: "북미" }, { id: "la", name: "중남미" }, { id: "oc", name: "오세아니아" }
   ];
   const M = Object.fromEntries(MARKETS.map(m => [m.id, m]));
+  // 특산품: 그 나라에서 가장 유명한 것 (그림 파일 이름은 good-<id>.png)
   const GOODS = [
     { id: "kr",  origin: "seoul",     name: i => i < ym2i("1990-01") ? "의류" : "반도체", base: i => i < ym2i("1990-01") ? 25 : 80 },
-    { id: "jp",  origin: "tokyo",     name: () => "전자제품", base: () => 120 },
-    { id: "cn",  origin: "shanghai",  name: () => "생활용품", base: () => 15 },
-    { id: "hk",  origin: "hongkong",  name: () => "비단",     base: () => 60 },
-    { id: "th",  origin: "bangkok",   name: () => "쌀",       base: () => 8, perish: true },
-    { id: "sg",  origin: "singapore", name: () => "천연고무", base: () => 20 },
-    { id: "in",  origin: "mumbai",    name: () => "향신료",   base: () => 30 },
-    { id: "oil", origin: "dubai",     name: () => "원유",     base: null },
-    { id: "za",  origin: "capetown",  name: () => "금",       base: () => 400 },
-    { id: "de",  origin: "frankfurt", name: () => "기계부품", base: () => 150 },
-    { id: "ch",  origin: "zurich",    name: () => "시계",     base: () => 300 },
-    { id: "uk",  origin: "london",    name: () => "위스키",   base: () => 35 },
-    { id: "us",  origin: "newyork",   name: () => "곡물",     base: () => 12, perish: true },
-    { id: "br",  origin: "saopaulo",  name: () => "커피",     base: () => 25 },
-    { id: "ca",  origin: "vancouver", name: () => "목재",     base: () => 18 },
-    { id: "au",  origin: "sydney",    name: () => "철광석",   base: () => 10 },
-    { id: "tw",  origin: "taipei",    name: () => "자전거",   base: () => 120 },
-    { id: "my",  origin: "kualalumpur", name: () => "팜유",   base: () => 15 },
-    { id: "lk",  origin: "colombo",   name: () => "홍차",     base: () => 20 },
-    { id: "fr",  origin: "paris",     name: () => "와인",     base: () => 40 },
-    { id: "nl",  origin: "rotterdam", name: () => "꽃",       base: () => 10, perish: true },
-    { id: "be",  origin: "antwerp",   name: () => "다이아몬드", base: () => 1000 },
-    { id: "it",  origin: "milan",     name: () => "가죽제품", base: () => 150 },
-    { id: "es",  origin: "barcelona", name: () => "올리브유", base: () => 20 },
-    { id: "pt",  origin: "lisbon",    name: () => "코르크",   base: () => 12 },
-    { id: "gr",  origin: "athens",    name: () => "대리석",   base: () => 30 },
-    { id: "se",  origin: "stockholm", name: () => "가구",     base: () => 100 },
-    { id: "no",  origin: "oslo",      name: () => "연어",     base: () => 25, perish: true },
-    { id: "dk",  origin: "copenhagen", name: () => "낙농품",  base: () => 15, perish: true },
-    { id: "la",  origin: "losangeles", name: () => "청바지",  base: () => 30 },
-    { id: "mx",  origin: "mexicocity", name: () => "은",      base: () => 60 },
-    { id: "nz",  origin: "auckland",  name: () => "양모",     base: () => 20 }
+    { id: "jp",  origin: "tokyo",     name: () => "전자제품",   base: () => 120 },
+    { id: "cn",  origin: "shanghai",  name: () => "비단",       base: () => 60 },
+    { id: "hk",  origin: "hongkong",  name: () => "장난감",     base: () => 25 },
+    { id: "tw",  origin: "taipei",    name: () => "자전거",     base: () => 120 },
+    { id: "th",  origin: "bangkok",   name: () => "쌀",         base: () => 8, perish: true },
+    { id: "sg",  origin: "singapore", name: () => "석유화학제품", base: () => 40 },
+    { id: "my",  origin: "kualalumpur", name: () => "팜유",     base: () => 15 },
+    { id: "in",  origin: "mumbai",    name: () => "향신료",     base: () => 30 },
+    { id: "lk",  origin: "colombo",   name: () => "홍차",       base: () => 20 },
+    { id: "oil", origin: "dubai",     name: () => "원유",       base: null },
+    { id: "za",  origin: "capetown",  name: () => "금",         base: () => 400 },
+    { id: "de",  origin: "frankfurt", name: () => "자동차 부품", base: () => 150 },
+    { id: "ch",  origin: "zurich",    name: () => "시계",       base: () => 300 },
+    { id: "uk",  origin: "london",    name: () => "위스키",     base: () => 35 },
+    { id: "fr",  origin: "paris",     name: () => "와인",       base: () => 40 },
+    { id: "nl",  origin: "rotterdam", name: () => "튤립",       base: () => 10, perish: true },
+    { id: "be",  origin: "antwerp",   name: () => "초콜릿",     base: () => 20 },
+    { id: "it",  origin: "milan",     name: () => "가죽 가방",  base: () => 150 },
+    { id: "es",  origin: "barcelona", name: () => "하몽",       base: () => 80 },
+    { id: "pt",  origin: "lisbon",    name: () => "에그타르트", base: () => 5, perish: true },
+    { id: "gr",  origin: "athens",    name: () => "올리브유",   base: () => 20 },
+    { id: "se",  origin: "stockholm", name: () => "가구",       base: () => 100 },
+    { id: "no",  origin: "oslo",      name: () => "연어",       base: () => 25, perish: true },
+    { id: "dk",  origin: "copenhagen", name: () => "버터쿠키",  base: () => 12 },
+    { id: "us",  origin: "newyork",   name: () => "밀",         base: () => 12, perish: true },
+    { id: "la",  origin: "losangeles", name: () => "오렌지",    base: () => 8, perish: true },
+    { id: "ca",  origin: "vancouver", name: () => "메이플시럽", base: () => 20 },
+    { id: "mx",  origin: "mexicocity", name: () => "데킬라",    base: () => 30 },
+    { id: "br",  origin: "saopaulo",  name: () => "커피",       base: () => 25 },
+    { id: "au",  origin: "sydney",    name: () => "소고기",     base: () => 50, perish: true },
+    { id: "nz",  origin: "auckland",  name: () => "키위",       base: () => 10, perish: true }
   ];
   const G = Object.fromEntries(GOODS.map(g => [g.id, g]));
   // 항해 기간: 두 항구 사이 거리(바닷길은 직선의 약 1.3배)로 1~4달
@@ -146,7 +147,8 @@ window.Game = (() => {
   const S0 = D.series;
   const BASE = {
     KRW: build(S0.KRW, 0.008, 1), JPY: build(S0.JPY, 0.012, 2), GBP: build(S0.GBP, 0.01, 3),
-    DEM: build(S0.DEM, 0.01, 4), EURx: build(S0.EUR, 0.01, 5), OIL: build(S0.OIL, 0.04, 6), CPI: build(S0.CPI, 0, 7)
+    DEM: build(S0.DEM, 0.01, 4), EURx: build(S0.EUR, 0.01, 5), OIL: build(S0.OIL, 0.04, 6), CPI: build(S0.CPI, 0, 7),
+    RATE_KRW: build(S0.RATE_KRW, 0, 8), RATE_USD: build(S0.RATE_USD, 0, 9), RATE_JPY: build(S0.RATE_JPY, 0, 10)
   };
   // 유로 이전은 마르크를 유로 환산값으로 이어 붙임 (내부 계산은 끊김 없이)
   BASE.EUR = new Float64Array(LAST + 1).map((_, i) => i < EURO_START ? BASE.DEM[i] / DEM_PER_EUR : BASE.EURx[i]);
@@ -238,7 +240,7 @@ window.Game = (() => {
       endI: sc.to ? ym2i(sc.to) : Infinity, ext: {}, mods: [], delays: [], voyages: [], nextId: 1,
       inv: Object.fromEntries(MARKETS.map(m => [m.id, {}])), cap: Object.fromEntries(MARKETS.map(m => [m.id, 60])),
       ships: 2, shipCap: 40, demand: blankDemand(), news: [], prevI: i - 1, over: false,
-      mgr: {}, cb: Object.fromEntries(MARKETS.map(m => [m.id, {}])), traded: []
+      mgr: {}, cb: Object.fromEntries(MARKETS.map(m => [m.id, {}])), traded: [], loans: {}
     };
     S.cash = carryUSDreal ? carryUSDreal * cpi(i) * rate("KRW", i) : scale(12000);
     S.startWorth = S.cash;
@@ -254,7 +256,59 @@ window.Game = (() => {
     let w = S.cash;
     for (const m of MARKETS) for (const [g, q] of Object.entries(S.inv[m.id])) w += q * sellKRW(m.id, g);
     for (const v of S.voyages) w += v.hedge != null ? v.hedge : v.qty * sellKRW(v.to, v.g);
-    return w;
+    return w - debtKRW();
+  }
+  const grossAssets = () => netWorth() + debtKRW();
+
+  // ---------- 은행 대출 ----------
+  // 원화·달러·엔화로 빌릴 수 있음. 빚은 빌린 통화로 남아서, 환율이 오르면 원화로 갚을 돈이 늘어남.
+  const LOAN_CURS = ["KRW", "USD", "JPY"];
+  const LOAN_NAME = { KRW: "원화", USD: "달러", JPY: "엔화" };
+  function loanRate(cur, i = S.i) {   // 연 %, 대출 금리(근사치)
+    const k = "RATE_" + cur, arr = BASE[k];
+    return arr[Math.min(Math.max(0, i), LAST)];
+  }
+  const toKRWraw = (amt, cur) => cur === "KRW" ? amt : amt / rate(cur, S.i) * rate("KRW", S.i);
+  const fromKRWraw = (krw, cur) => cur === "KRW" ? krw : krw / rate("KRW", S.i) * rate(cur, S.i);
+  function debtKRW() { let d = 0; for (const [cur, amt] of Object.entries(S.loans || {})) d += toKRWraw(amt, cur); return d; }
+  const creditLimit = () => Math.max(0, grossAssets() * 0.6 - debtKRW());   // 총자산의 60%까지
+  function borrow(cur, krw) {
+    krw = Math.floor(krw);
+    if (krw <= 0) return "금액을 정하세요";
+    if (krw > creditLimit() + 1) return "대출 한도를 넘어요";
+    S.loans = S.loans || {};
+    const fee = cur === "KRW" ? 0 : krw * 0.005;   // 외화는 환전 수수료 0.5%
+    S.loans[cur] = (S.loans[cur] || 0) + fromKRWraw(krw, cur);
+    S.cash += krw - fee;
+    return null;
+  }
+  function repay(cur, krw) {
+    const owe = toKRWraw((S.loans || {})[cur] || 0, cur);
+    if (owe <= 0) return "갚을 빚이 없어요";
+    const fee = cur === "KRW" ? 1 : 1.005;
+    krw = Math.min(Math.floor(krw), owe);
+    if (krw * fee > S.cash + 1) return "현금이 부족해요";
+    S.cash -= krw * fee;
+    S.loans[cur] -= fromKRWraw(krw, cur);
+    if (S.loans[cur] < 1e-6 || toKRWraw(S.loans[cur], cur) < 1) delete S.loans[cur];
+    return null;
+  }
+  // 이자: frac = 1년 중 이번에 낼 몫 (월 단위 1/12, 실시간 하루 1/365). 현금이 모자라면 빚에 붙음
+  function chargeInterest(i, frac) {
+    let paidAll = 0, added = 0;
+    for (const cur of Object.keys(S.loans || {})) {
+      const intr = S.loans[cur] * loanRate(cur, i) / 100 * frac;
+      const krw = toKRWraw(intr, cur);
+      if (S.cash >= krw) { S.cash -= krw; paidAll += krw; }
+      else { S.loans[cur] += intr; added += krw; }
+    }
+    if (added > 0 && frac > 0.05) S.news.unshift({ i, kind: "loan", title: "이자를 못 내 빚이 늘었어요", body: `현금이 모자라 이자 ${Math.round(added / 1e4).toLocaleString()}만원이 빚에 더해졌어요.` });
+    // 부도: 빚이 총자산을 넘으면
+    if (debtKRW() > 0 && netWorth() < 0 && !S.bankrupt) {
+      S.bankrupt = true; S.over = true;
+      S.news.unshift({ i, kind: "loss", title: "부도", body: "빚이 가진 재산보다 많아져 회사가 문을 닫았어요." });
+    }
+    return paidAll;
   }
 
   // ---------- 행동 ----------
@@ -397,6 +451,7 @@ window.Game = (() => {
     }
     restock();
     runManagers(i);
+    chargeInterest(i, 1 / 12);
     S.news = S.news.slice(0, 40);
     if (i >= S.endI) S.over = true;
     return out;
@@ -575,6 +630,7 @@ window.Game = (() => {
       }
       S.voyages = keep;
       if (S.mgr[m.id]) runManager(m.id, S.i, 1 / 30);
+      if (m.id === "seoul") chargeInterest(S.i, 1 / 365);
     }
     S.now = now; S.lastTs = now;
     S.news = S.news.slice(0, 40);
@@ -594,6 +650,7 @@ window.Game = (() => {
   function migrate(s) {
     s.mgr = s.mgr || {};
     s.traded = s.traded || [];
+    s.loans = s.loans || {};
     if (s.live && !s.rt && s.endI == null) s.endI = Infinity;
     s.cb = s.cb || {};
     for (const m of MARKETS) {
@@ -619,6 +676,7 @@ window.Game = (() => {
     MANAGERS, MG, statSum, hire, fire, setMgr, hireCost, salary, bestDest,
     newGame, nextTurn, carryToLive, buy, sell, ship, quoteShip, upgrade, upgCost, UPG,
     startLive, liveSync, nextOpen, ratePrev, DAY, liveReal,
+    LOAN_CURS, LOAN_NAME, loanRate, debtKRW, creditLimit, borrow, repay, grossAssets,
     rate, oil, priceLocal, buyKRW, sellKRW, localToKRW, netWorth, invCount, shipsFree,
     dispCur, toDisp, dispMult, routeDelay
   };
