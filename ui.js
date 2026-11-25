@@ -509,6 +509,10 @@
         <button class="btn ghost" data-sound type="button">소리 ${Extras.R.sound ? "켜짐" : "꺼짐"}</button>
         <button class="btn ghost" data-tutreplay type="button">튜토리얼</button>
       </div>
+      <div class="row2b">
+        <button class="btn ghost" data-transfer type="button">저장 옮기기</button>
+        <button class="btn ghost" data-invite type="button">친구에게 게임 보내기</button>
+      </div>
       <p class="note">환율은 미국 연준 월평균, 유가는 WTI 월평균 실제 값이에요(원화 1981년 이전·유가 1985년 이전은 당시 고시 가격 근사치). 2026년 10월 이후는 가상으로 이어져요.</p>`;
     $("#modal").hidden = false;
   }
@@ -537,8 +541,69 @@
         <div class="kv"><span>최종 순자산 (목표 ×${tg})</span><b>${won(w)}</b></div>
       </div>
       <div class="result ${cls(r)}">×${(w / S.startWorth).toFixed(2)}</div>
-      <div class="scens">${btns}</div>`;
+      <div class="scens">${btns}</div>
+      <button class="btn ghost" data-brag type="button" style="width:100%;margin-top:6px">결과 자랑하기</button>`;
     $("#modal").hidden = false;
+  }
+
+  // ---------- 공유 ----------
+  const GAME_URL = location.hostname.endsWith("github.io") ? location.origin + location.pathname : "https://catle110511-dotcom.github.io/fx-trader-/";
+  async function shareText(text) {
+    try { if (navigator.share) { await navigator.share({ title: "환율 무역상", text, url: GAME_URL }); return; } } catch (e) { if (e && e.name === "AbortError") return; }
+    try { await navigator.clipboard.writeText(text + "\n" + GAME_URL); toast("복사했어요. 카톡 등에 붙여넣으세요"); }
+    catch (e) { showCopyBox(text + "\n" + GAME_URL); }
+  }
+  function brag() {
+    const S = g.S, m = g.netWorth() / S.startWorth, tg = Story.target(S.scen);
+    const ok = !S.bankrupt && tg && m >= tg;
+    shareText(S.bankrupt ? `환율 무역상 ${S.scenName}에서 빚 때문에 부도났어… 나보다 잘할 수 있어?`
+      : `환율 무역상 ${S.scenName}: 재산 ${m.toFixed(1)}배${tg ? ` (목표 ${tg}배 ${ok ? "달성!" : "실패"})` : ""}. 실제 환율로 장사하는 게임, 너도 해봐!`);
+  }
+  // 복사가 막힌 기기용: 직접 길게 눌러 복사
+  function showCopyBox(text) {
+    $("#modalCard").innerHTML = `<h2>직접 복사하기</h2><p class="lead">아래 글을 길게 눌러 복사하세요.</p>
+      <textarea class="codebox" readonly>${esc(text)}</textarea>
+      <button class="btn primary" data-menu type="button" style="width:100%;max-width:none;margin-top:10px">돌아가기</button>`;
+    $("#modal").hidden = false;
+  }
+
+  // ---------- 저장 옮기기 (폰 ↔ PC) ----------
+  async function packSave() {
+    const data = JSON.stringify({ v: 1, S: g.S, story: Story.flags, rec: Extras.R });
+    const bytes = new TextEncoder().encode(data);
+    try {
+      const cs = new Blob([bytes]).stream().pipeThrough(new CompressionStream("gzip"));
+      const buf = new Uint8Array(await new Response(cs).arrayBuffer());
+      let bin = ""; for (let i = 0; i < buf.length; i += 0x8000) bin += String.fromCharCode(...buf.subarray(i, i + 0x8000));
+      return "FXT1Z:" + btoa(bin);
+    } catch (e) {
+      let bin = ""; for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+      return "FXT1:" + btoa(bin);
+    }
+  }
+  async function unpackSave(code) {
+    code = code.trim();
+    const z = code.startsWith("FXT1Z:"), body = code.replace(/^FXT1Z?:/, "");
+    const bin = atob(body), bytes = Uint8Array.from(bin, c => c.charCodeAt(0));
+    let text;
+    if (z) text = await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"))).text();
+    else text = new TextDecoder().decode(bytes);
+    const d = JSON.parse(text);
+    if (!d || d.v !== 1 || !d.S) throw new Error("bad");
+    return d;
+  }
+  async function openTransfer() {
+    $("#modalCard").innerHTML = `<h2>저장 옮기기</h2>
+      <p class="lead">이 기기의 게임을 다른 기기(폰 ↔ PC)로 옮겨요. 아래 코드를 복사해서 다른 기기의 같은 화면에 붙여넣으세요.</p>
+      <b class="mini">1. 이 기기의 저장 코드</b>
+      <textarea class="codebox" id="myCode" readonly>만드는 중…</textarea>
+      <button class="btn" data-copycode type="button" style="width:100%;margin:6px 0 14px">코드 복사</button>
+      <b class="mini">2. 다른 기기에서 받은 코드 붙여넣기</b>
+      <textarea class="codebox" id="inCode" placeholder="FXT1로 시작하는 코드를 붙여넣으세요"></textarea>
+      <button class="btn primary" data-loadcode type="button" style="width:100%;max-width:none;margin-top:6px">불러오기 (지금 게임은 덮어써요)</button>
+      <button class="btn ghost" data-menu type="button" style="width:100%;margin-top:8px">돌아가기</button>`;
+    $("#modal").hidden = false;
+    try { $("#myCode").value = g.S ? await packSave() : "아직 저장된 게임이 없어요"; } catch (e) { $("#myCode").value = "코드를 만들지 못했어요"; }
   }
 
   // ---------- 속보 카드 ----------
@@ -587,6 +652,22 @@
       const err = g.repay(cur, oweKRW * +t.dataset.f + (+t.dataset.f === 1 ? 1 : 0)); toast(err || "갚았어요"); save(); renderAll(); return openUpg();
     }
     if (t.hasAttribute("data-ach")) return openAch();
+    if (t.hasAttribute("data-transfer")) { openTransfer(); return; }
+    if (t.hasAttribute("data-invite")) { shareText("실제 환율이랑 역사 사건(오일쇼크, IMF…)으로 장사하는 게임 만들었어. 해봐!"); return; }
+    if (t.hasAttribute("data-brag")) { brag(); return; }
+    if (t.hasAttribute("data-copycode")) {
+      const v = $("#myCode").value;
+      navigator.clipboard.writeText(v).then(() => toast("복사했어요"), () => { $("#myCode").select(); toast("길게 눌러 복사하세요"); });
+      return;
+    }
+    if (t.hasAttribute("data-loadcode")) {
+      unpackSave($("#inCode").value).then(d => {
+        g.S = d.S;
+        try { localStorage.setItem("fxtrader.story", JSON.stringify(d.story || {})); localStorage.setItem("fxtrader.records", JSON.stringify(d.rec || {})); } catch (e) {}
+        save(); $("#modal").hidden = true; renderAll(); toast("불러왔어요");
+      }).catch(() => toast("코드가 올바르지 않아요"));
+      return;
+    }
     if (t.hasAttribute("data-sound")) { const on = Extras.toggleSound(); toast(on ? "소리 켬" : "소리 끔"); return openStart(); }
     if (t.dataset.scen) { g.newGame(t.dataset.scen); sel = "seoul"; save(); $("#modal").hidden = true; renderAll(); return Story.startScenario(t.dataset.scen); }
     if (t.hasAttribute("data-tutreplay")) { Story.replayTutorial(); return toast("다음에 시대를 고르면 튜토리얼이 시작돼요"); }
@@ -633,6 +714,9 @@
   const ro = new ResizeObserver(() => { if (g.S) { vb = null; zoomTo(region, true); drawMapLayer(); } }); ro.observe(mapEl);
 
   window.UI = { showRegion: r => zoomTo(r) };   // 튜토리얼이 지도를 움직일 때 씀
+  // ---------- 홈 화면 앱 ----------
+  try { if ("serviceWorker" in navigator && location.protocol === "https:" && location.hostname.endsWith("github.io")) navigator.serviceWorker.register("sw.js"); } catch (e) {}
+
   // ---------- 시작 ----------
   Extras.onUnlock = a => setTimeout(() => toast(`업적 달성: ${a.name}`), 900);
   const saved = load();
